@@ -70,3 +70,23 @@ def delete_dataset_endpoint(dataset_id: str, user: str = Depends(require_auth)):
 def delete_dataset_endpoint_plural(dataset_id: str, user: str = Depends(require_auth)):
     """Plural alias for compatibility with frontend calls."""
     return delete_dataset_endpoint(dataset_id, user)
+
+
+@router.patch("/datasets/{dataset_id}/rename")
+def rename_dataset(dataset_id: str, body: dict, user: str = Depends(require_auth)):
+    """Rename a dataset's display filename."""
+    require_item_access(user, "dataset", dataset_id)
+    new_name = (body.get("name") or "").strip()
+    if not new_name:
+        raise HTTPException(status_code=400, detail="Name cannot be empty")
+    dataset = get_dataset(dataset_id)
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    from app.db import get_conn
+    with get_conn() as conn:
+        conn.execute(
+            "UPDATE datasets SET original_filename = ? WHERE id = ?",
+            (new_name, dataset_id),
+        )
+    return {"message": "Dataset renamed", "dataset_id": dataset_id, "name": new_name}

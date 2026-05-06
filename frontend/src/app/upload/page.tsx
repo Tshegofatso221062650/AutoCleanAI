@@ -40,6 +40,17 @@ export default function UploadPage() {
       .catch(() => {});
   }, []);
 
+  // Warn user before navigating away during an active upload
+  useEffect(() => {
+    if (!busy) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [busy]);
+
   const fetchObjectives = async () => {
     try {
       const data = await apiFetch("/objectives");
@@ -113,6 +124,47 @@ export default function UploadPage() {
       }
     },
     [router, selectedObjectiveId],
+  );
+
+  const uploadMultiple = useCallback(
+    async (files: File[]) => {
+      setBusy(true);
+      setMsg(null);
+      let successCount = 0;
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setSelectedFile(file);
+        setCurrentStep(`Uploading file ${i + 1} of ${files.length}: ${file.name}`);
+        setUploadProgress(Math.round(((i) / files.length) * 100));
+
+        const fd = new FormData();
+        fd.append("file", file);
+        const t = getToken();
+        try {
+          const res = await fetch(`${apiUrl("")}/upload`, {
+            method: "POST",
+            headers: t ? { Authorization: `Bearer ${t}` } : undefined,
+            body: fd,
+          });
+          if (!res.ok) {
+            const errorText = await res.text();
+            showToast(`Failed: ${file.name} — ${errorText}`, "error");
+            continue;
+          }
+          await res.json();
+          successCount++;
+        } catch {
+          showToast(`Failed to upload ${file.name}`, "error");
+        }
+      }
+      setUploadProgress(100);
+      setCurrentStep("All files processed");
+      showToast(`${successCount} of ${files.length} files uploaded successfully`, "success");
+      setBusy(false);
+      setSelectedFile(null);
+      setTimeout(() => router.push("/history"), 600);
+    },
+    [router],
   );
 
   const formatFileSize = (bytes: number) => {
@@ -259,8 +311,12 @@ export default function UploadPage() {
               e.preventDefault();
               setDragActive(false);
               if (!busy) {
-                const f = e.dataTransfer.files[0];
-                if (f) void uploadFile(f);
+                const files = Array.from(e.dataTransfer.files);
+                if (files.length > 1) {
+                  void uploadMultiple(files);
+                } else if (files[0]) {
+                  void uploadFile(files[0]);
+                }
               }
             }}
             onClick={() => {
@@ -268,9 +324,14 @@ export default function UploadPage() {
               const input = document.createElement("input");
               input.type = "file";
               input.accept = ".csv,.tsv,.xlsx,.xls,.json,.parquet";
+              input.multiple = true;
               input.onchange = () => {
-                const f = input.files?.[0];
-                if (f) void uploadFile(f);
+                const files = Array.from(input.files || []);
+                if (files.length > 1) {
+                  void uploadMultiple(files);
+                } else if (files[0]) {
+                  void uploadFile(files[0]);
+                }
               };
               input.click();
             }}
@@ -298,7 +359,7 @@ export default function UploadPage() {
                 </div>
                 <div>
                   <p className="text-base font-semibold text-app-text">
-                    {dragActive ? "Drop to upload" : "Drop file here or click to browse"}
+                    {dragActive ? "Drop to upload" : "Drop files here or click to browse"}
                   </p>
                   <p className="text-sm text-app-muted mt-1.5">CSV, XLSX, XLS, JSON, Parquet, TSV</p>
                 </div>

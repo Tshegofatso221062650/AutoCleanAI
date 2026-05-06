@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { apiFetch, apiUrl, getCached } from "@/lib/api";
 import { showConfirm } from "@/lib/confirm";
 import { showToast } from "@/components/Toast";
-import { History as HistoryIcon, FileSpreadsheet, Calendar, Grid, TrendingUp, ExternalLink, Sparkles, FolderOpen, Trash2, ChevronDown, ChevronRight, GitBranch, Clock, FileText, Undo2, Redo2, Upload, GitCompare, TableProperties, User } from "lucide-react";
+import { History as HistoryIcon, FileSpreadsheet, Calendar, Grid, TrendingUp, ExternalLink, Sparkles, FolderOpen, Trash2, ChevronDown, ChevronRight, GitBranch, Clock, FileText, Undo2, Redo2, Upload, GitCompare, TableProperties, User, Pencil, Check, X } from "lucide-react";
 
 interface Item {
   id: string;
@@ -52,6 +52,29 @@ export default function HistoryPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [sortBy, setSortBy] = useState<"date" | "name" | "quality" | "rows">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+
+  const startRename = (id: string, currentName: string) => {
+    setRenamingId(id);
+    setRenameValue(currentName);
+  };
+
+  const submitRename = async () => {
+    if (!renamingId || !renameValue.trim()) return;
+    try {
+      await apiFetch(`/datasets/${renamingId}/rename`, {
+        method: "PATCH",
+        body: JSON.stringify({ name: renameValue.trim() }),
+      });
+      setItems((prev) => prev.map((it) => it.id === renamingId ? { ...it, original_filename: renameValue.trim() } : it));
+      showToast("Dataset renamed", "success");
+    } catch {
+      showToast("Rename failed", "error");
+    } finally {
+      setRenamingId(null);
+    }
+  };
 
   useEffect(() => {
     void apiFetch("/history").then((d) => setItems(d.items || []));
@@ -368,14 +391,35 @@ export default function HistoryPage() {
                                 )}
                               </Button>
                               <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-app-text font-medium">{it.original_filename}</span>
-                                  {it.last_cleaned_at && (
-                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-accent/10 text-accent text-[9px] font-bold uppercase tracking-wider border border-accent/20">
-                                      Cleaned
-                                    </span>
-                                  )}
-                                </div>
+                                {renamingId === it.id ? (
+                                  <div className="flex items-center gap-1.5">
+                                    <input
+                                      autoFocus
+                                      value={renameValue}
+                                      onChange={(e) => setRenameValue(e.target.value)}
+                                      onKeyDown={(e) => { if (e.key === "Enter") void submitRename(); if (e.key === "Escape") setRenamingId(null); }}
+                                      className="px-2 py-0.5 rounded-md border border-accent/50 bg-[var(--app-input-bg)] text-sm text-app-text focus:outline-none focus:ring-1 focus:ring-accent/40 w-48"
+                                    />
+                                    <button onClick={() => void submitRename()} className="p-0.5 rounded hover:bg-accent/20 text-accent"><Check className="w-3.5 h-3.5" /></button>
+                                    <button onClick={() => setRenamingId(null)} className="p-0.5 rounded hover:bg-danger/20 text-app-subtle hover:text-danger"><X className="w-3.5 h-3.5" /></button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2 group/name">
+                                    <span className="text-app-text font-medium">{it.original_filename}</span>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); startRename(it.id, it.original_filename); }}
+                                      className="opacity-0 group-hover/name:opacity-100 p-0.5 rounded hover:bg-edge/50 text-app-subtle hover:text-accent transition-all"
+                                      title="Rename dataset"
+                                    >
+                                      <Pencil className="w-3 h-3" />
+                                    </button>
+                                    {it.last_cleaned_at && (
+                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-accent/10 text-accent text-[9px] font-bold uppercase tracking-wider border border-accent/20">
+                                        Cleaned
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
                                 {it.created_by && (
                                   <div className="flex items-center gap-1 mt-0.5">
                                     <User className="w-2.5 h-2.5 text-app-subtle" />

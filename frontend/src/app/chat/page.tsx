@@ -26,8 +26,20 @@ export default function ChatPage() {
   const [datasets, setDatasets]           = useState<Dataset[]>(
     () => getCached<{ items: Dataset[] }>("/history")?.items ?? []
   );
-  const [selectedId, setSelectedId]       = useState<string | null>(null);
-  const [messages, setMessages]           = useState<Message[]>([]);
+  const [selectedId, setSelectedId]       = useState<string | null>(
+    () => {
+      if (typeof window === "undefined") return null;
+      return sessionStorage.getItem("chat_selected_dataset") || null;
+    }
+  );
+  const [messages, setMessages]           = useState<Message[]>(
+    () => {
+      if (typeof window === "undefined") return [];
+      const sid = sessionStorage.getItem("chat_selected_dataset");
+      if (!sid) return [];
+      try { return JSON.parse(sessionStorage.getItem(`chat_msgs_${sid}`) || "[]"); } catch { return []; }
+    }
+  );
   const [input, setInput]                 = useState("");
   const [loading, setLoading]             = useState(false);
   const [datasetsLoading, setDatasetsLoading] = useState(
@@ -60,7 +72,12 @@ export default function ChatPage() {
 
   const selectDataset = (id: string) => {
     setSelectedId(id);
-    setMessages([]);
+    sessionStorage.setItem("chat_selected_dataset", id);
+    // Restore previous messages for this dataset if any
+    try {
+      const prev = JSON.parse(sessionStorage.getItem(`chat_msgs_${id}`) || "[]");
+      setMessages(prev);
+    } catch { setMessages([]); }
   };
 
   const send = useCallback(async () => {
@@ -68,7 +85,11 @@ export default function ChatPage() {
     if (!text || !selectedId || loading) return;
 
     const userMsg: Message = { role: "user", content: text };
-    setMessages((m) => [...m, userMsg]);
+    setMessages((m) => {
+      const updated = [...m, userMsg];
+      try { sessionStorage.setItem(`chat_msgs_${selectedId}`, JSON.stringify(updated)); } catch {}
+      return updated;
+    });
     setInput("");
     setLoading(true);
 
@@ -82,7 +103,11 @@ export default function ChatPage() {
         content: data.reply,
         provider: data.provider,
       };
-      setMessages((m) => [...m, assistantMsg]);
+      setMessages((m) => {
+        const updated = [...m, assistantMsg];
+        try { sessionStorage.setItem(`chat_msgs_${selectedId}`, JSON.stringify(updated)); } catch {}
+        return updated;
+      });
     } catch {
       showToast("Failed to get response", "error");
       setMessages((m) => m.slice(0, -1));
