@@ -32,7 +32,7 @@ interface ApiKey {
   last_used_at: string | null;
 }
 
-const AVATAR_COLORS = [
+const AVATAR_COLORS: [string, string][] = [
   ["#00d9a5", "#00b8ff"],
   ["#6366f1", "#a855f7"],
   ["#f59e0b", "#ef4444"],

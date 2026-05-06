@@ -192,10 +192,10 @@ export default function AnalysisPage() {
               </span>
               <span className="text-xs text-app-subtle font-mono">{id}</span>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-fluid-2xl font-bold tracking-tight">
               <span className="gradient-text">{datasetName || "Dataset Analysis"}</span>
             </h1>
-            <p className="text-sm text-app-muted mt-1">
+            <p className="text-fluid-sm text-app-muted mt-1">
               {isCleaned
                 ? "Showing post-cleaning metrics — your original file is preserved"
                 : "This is your original dataset exactly as uploaded — no changes applied yet"}

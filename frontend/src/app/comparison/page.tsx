@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AuthGate } from "@/components/AuthGate";
 import { Shell } from "@/components/Shell";
@@ -49,7 +49,7 @@ interface ComparisonResult {
   };
 }
 
-export default function ComparisonPage() {
+function ComparisonInner() {
   const searchParams = useSearchParams();
   const [datasets, setDatasets] = useState<Dataset[]>(
     () => getCached<{ items: Dataset[] }>("/history")?.items ?? []
@@ -302,5 +302,13 @@ export default function ComparisonPage() {
         </div>
       </Shell>
     </AuthGate>
+  );
+}
+
+export default function ComparisonPage() {
+  return (
+    <Suspense>
+      <ComparisonInner />
+    </Suspense>
   );
 }

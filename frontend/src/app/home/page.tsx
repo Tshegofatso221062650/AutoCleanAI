@@ -130,7 +130,7 @@ export default function HomePage() {
               <Zap className="w-3 h-3" />
               <span>AI-Powered Data Intelligence</span>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-fluid-2xl font-bold tracking-tight">
               <span className="text-app-text">
                 {isFirstTime ? "Welcome to " : ""}
               </span>
@@ -138,7 +138,7 @@ export default function HomePage() {
                 {isFirstTime ? "AutoClean AI" : "Dashboard"}
               </span>
             </h1>
-            <p className="text-sm text-app-muted mt-1.5 max-w-lg">
+            <p className="text-fluid-sm text-app-muted mt-1.5 max-w-lg">
               {isFirstTime
                 ? "Upload a messy dataset and let the system detect issues, suggest fixes, and export a clean version — your originals are never touched."
                 : "Your data cleaning workspace. Upload, analyse, clean, and export."}

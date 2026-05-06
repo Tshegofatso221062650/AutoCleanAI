@@ -321,8 +321,8 @@ export default function CleaningPage() {
             </span>
             <span className="text-xs text-app-subtle font-mono">{id}</span>
           </div>
-          <h1 className="text-2xl font-bold text-app-text">{originalFilename ? `Clean: ${originalFilename}` : "Clean Dataset"}</h1>
-          <p className="text-sm text-app-muted mt-1">
+          <h1 className="text-fluid-2xl font-bold text-app-text">{originalFilename ? `Clean: ${originalFilename}` : "Clean Dataset"}</h1>
+          <p className="text-fluid-sm text-app-muted mt-1">
             Your original file is <strong className="text-app-text">never modified</strong>. Configure options, run cleaning, then compare the full before/after preview and export.
           </p>
         </div>

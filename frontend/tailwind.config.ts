@@ -8,6 +8,17 @@ const config: Config = {
         sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "Cascadia Code", "Consolas", "monospace"],
       },
+      fontSize: {
+        "fluid-2xs": "var(--fs-2xs)",
+        "fluid-xs":  "var(--fs-xs)",
+        "fluid-sm":  "var(--fs-sm)",
+        "fluid-base": "var(--fs-base)",
+        "fluid-md":  "var(--fs-md)",
+        "fluid-lg":  "var(--fs-lg)",
+        "fluid-xl":  "var(--fs-xl)",
+        "fluid-2xl": "var(--fs-2xl)",
+        "fluid-3xl": "var(--fs-3xl)",
+      },
       colors: {
         void:  "var(--app-bg)",
         panel: "var(--app-panel)",

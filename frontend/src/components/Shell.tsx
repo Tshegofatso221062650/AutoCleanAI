@@ -15,6 +15,7 @@ import { useNavigationShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useTheme } from "@/contexts/ThemeContext";
 import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { Button } from "@/components/ui/Button";
+import FocusTrap from "focus-trap-react";
 
 const PRIMARY_SECTIONS = ["Overview", "Data", "Prepare", "Automate", "Insights", "System"] as const;
 
@@ -258,8 +259,8 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
                   <Logo size={28} standalone={false} />
                 </div>
                 <div className="min-w-0">
-                  <span className="block text-[13px] font-semibold text-app-text tracking-tight truncate">AutoClean AI</span>
-                  <span className="block text-[10px] text-app-subtle tracking-wide">Data Intelligence</span>
+                  <span className="block text-fluid-sm font-semibold text-app-text tracking-tight truncate">AutoClean AI</span>
+                  <span className="block text-fluid-2xs text-app-subtle tracking-wide">Data Intelligence</span>
                 </div>
               </Link>
               <Button
@@ -283,7 +284,7 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
             return (
               <div key={section} className={idx > 0 ? "mt-4" : ""}>
                 {!sidebarCollapsed && (
-                  <p className="px-3 mb-1 text-[10px] font-semibold uppercase tracking-widest text-app-subtle select-none">
+                  <p className="px-3 mb-1 text-fluid-2xs font-semibold uppercase tracking-widest text-app-subtle select-none">
                     {section}
                   </p>
                 )}
@@ -297,7 +298,7 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
                         href={l.href}
                         title={sidebarCollapsed ? l.label : undefined}
                         onClick={() => setMobileOpen(false)}
-                        className={`flex items-center gap-2.5 rounded-lg text-[13px] font-medium transition-all duration-150 ${
+                        className={`flex items-center gap-2.5 rounded-lg text-fluid-sm font-medium transition-all duration-150 ${
                           sidebarCollapsed ? "justify-center w-10 h-10 mx-auto" : "px-3 py-[7px]"
                         } ${
                           isActive
@@ -339,8 +340,8 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
                   {userName ? initials(userName) : "?"}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[12px] font-semibold text-app-text truncate leading-tight">{userName || "Account"}</p>
-                  <p className="text-[10px] text-app-subtle capitalize leading-tight">{userRole}</p>
+                  <p className="text-fluid-xs font-semibold text-app-text truncate leading-tight">{userName || "Account"}</p>
+                  <p className="text-fluid-2xs text-app-subtle capitalize leading-tight">{userRole}</p>
                 </div>
               </Link>
               <button
@@ -356,30 +357,32 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
 
         {/* Logout confirmation modal */}
         {showLogoutConfirm && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }} role="dialog" aria-modal="true" aria-label="Confirm logout">
-            <div className="w-full max-w-sm rounded-2xl p-6 space-y-4 shadow-2xl" style={{ background: "var(--app-panel)", border: "1px solid var(--app-edge)" }}>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-danger/10 flex items-center justify-center flex-shrink-0">
-                  <LogOut className="w-5 h-5 text-danger" />
+          <FocusTrap focusTrapOptions={{ allowOutsideClick: true, escapeDeactivates: () => { setShowLogoutConfirm(false); return true; } }}>
+            <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }} role="dialog" aria-modal="true" aria-label="Confirm logout">
+              <div className="w-full max-w-sm rounded-2xl p-6 space-y-4 shadow-2xl" style={{ background: "var(--app-panel)", border: "1px solid var(--app-edge)" }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-danger/10 flex items-center justify-center flex-shrink-0">
+                    <LogOut className="w-5 h-5 text-danger" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-app-text">Log out?</p>
+                    <p className="text-xs text-app-muted mt-0.5">You'll need to sign in again to continue.</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-app-text">Log out?</p>
-                  <p className="text-xs text-app-muted mt-0.5">You'll need to sign in again to continue.</p>
+                <div className="flex gap-2 pt-1">
+                  <button onClick={() => setShowLogoutConfirm(false)}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-medium text-app-subtle hover:text-app-text transition-colors"
+                    style={{ background: "var(--app-hover-bg)", border: "1px solid var(--app-edge)" }}>
+                    Cancel
+                  </button>
+                  <button onClick={() => { setShowLogoutConfirm(false); apiFetch("/auth/logout", { method: "POST" }).catch(() => {}).finally(() => { clearToken(); invalidateAuthCache(); window.location.href = "/login"; }); }}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-danger hover:bg-danger/85 transition-colors">
+                    Log out
+                  </button>
                 </div>
-              </div>
-              <div className="flex gap-2 pt-1">
-                <button onClick={() => setShowLogoutConfirm(false)}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-medium text-app-subtle hover:text-app-text transition-colors"
-                  style={{ background: "var(--app-hover-bg)", border: "1px solid var(--app-edge)" }}>
-                  Cancel
-                </button>
-                <button onClick={() => { setShowLogoutConfirm(false); apiFetch("/auth/logout", { method: "POST" }).catch(() => {}).finally(() => { clearToken(); invalidateAuthCache(); window.location.href = "/login"; }); }}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-danger hover:bg-danger/85 transition-colors">
-                  Log out
-                </button>
               </div>
             </div>
-          </div>
+          </FocusTrap>
         )}
       </aside>
 
@@ -403,13 +406,13 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
           >
             <Menu className="w-5 h-5" />
           </button>
-          <h1 className="flex-1 text-[15px] font-semibold text-app-text truncate tracking-tight">
+          <h1 className="flex-1 text-fluid-md font-semibold text-app-text truncate tracking-tight">
             {links.find(l => l.href === pathname)?.label || "Dashboard"}
           </h1>
           <div className="flex-none flex items-center gap-0.5">
             <button
               onClick={openSearch}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] text-app-subtle hover:text-app-muted hover:bg-[var(--app-hover-bg)] transition-all duration-150 border border-transparent hover:border-edge/30"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-fluid-xs text-app-subtle hover:text-app-muted hover:bg-[var(--app-hover-bg)] transition-all duration-150 border border-transparent hover:border-edge/30"
               title="Search datasets (Ctrl+K)"
             >
               <Search className="w-3.5 h-3.5" />
@@ -525,6 +528,7 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
 
       {/* Dataset Quick-Search Modal (Ctrl+K) */}
       {showSearch && (
+        <FocusTrap focusTrapOptions={{ allowOutsideClick: true, escapeDeactivates: () => { closeSearch(); return true; }, initialFocus: false }}>
         <div
           className="fixed inset-0 z-50 flex items-start justify-center pt-[14vh] bg-black/60 backdrop-blur-sm"
           onClick={(e) => { if (e.target === e.currentTarget) closeSearch(); }}
@@ -602,9 +606,11 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
             )}
           </div>
         </div>
+        </FocusTrap>
       )}
       {/* Global confirm dialog */}
       {confirmReq && (
+        <FocusTrap focusTrapOptions={{ allowOutsideClick: true, escapeDeactivates: () => { confirmReq.resolve(false); setConfirmReq(null); return true; } }}>
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }} role="dialog" aria-modal="true" aria-label="Confirm action">
           <div className="w-full max-w-sm rounded-2xl p-6 space-y-4 shadow-2xl" style={{ background: "var(--app-panel)", border: "1px solid var(--app-edge)" }}>
             <p className="text-sm text-app-text leading-relaxed">{confirmReq.message}</p>
@@ -621,6 +627,7 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
             </div>
           </div>
         </div>
+        </FocusTrap>
       )}
     </div>
     </ShellMountedCtx.Provider>
