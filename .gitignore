@@ -13,6 +13,8 @@ data/uploads/*/
 exports/*/
 !exports/.gitkeep
 history/*.db
+backend/data.db
+backend/uploads/
 *.log
 tsconfig.tsbuildinfo
 .command
