@@ -9,7 +9,7 @@ import { OnboardingTour, useOnboardingTour } from "@/components/OnboardingTour";
 import {
   Upload, FileSpreadsheet, BarChart3, Zap, Database,
   Sparkles, ArrowRight, CheckCircle, Wand2, Download,
-  TrendingUp, Clock, ChevronRight, Activity,
+  TrendingUp, Clock, ChevronRight, ChevronDown, Activity,
 } from "lucide-react";
 
 interface OverviewStats {
@@ -83,6 +83,8 @@ export default function HomePage() {
   );
   const [activity, setActivity] = useState<ActivityEvent[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [showWorkflow, setShowWorkflow] = useState(true);
   const { showTour, completeTour, resetTour: _resetTour } = useOnboardingTour();
 
   useEffect(() => {
@@ -99,8 +101,8 @@ export default function HomePage() {
         setRecent(hist.slice(0, 4));
         setIsAdmin(meRes.role === "admin");
         setActivity(actRes.events || []);
-      } catch {
-        // silently ignore
+      } catch (e) {
+        setLoadError(e instanceof Error ? e.message : "Cannot reach the server. Is the backend running?");
       } finally {
         setLoading(false);
       }
@@ -143,6 +145,22 @@ export default function HomePage() {
             </p>
           </div>
 
+          {/* Backend error banner */}
+          {loadError && (
+            <div className="rounded-2xl border border-danger/25 bg-danger/5 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in-up">
+              <div>
+                <p className="font-semibold text-danger text-sm">Unable to load dashboard</p>
+                <p className="text-xs text-app-muted mt-1">{loadError}</p>
+              </div>
+              <button
+                onClick={() => { setLoadError(null); setLoading(true); window.location.reload(); }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-danger/10 text-danger border border-danger/20 text-sm font-medium hover:bg-danger/20 transition-colors whitespace-nowrap"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
           {/* First-time CTA */}
           {isFirstTime && (
             <div className="rounded-2xl border border-accent/25 bg-gradient-to-r from-accent/8 to-accent2/5 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glow-border animate-fade-in-up">
@@ -181,10 +199,18 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* How it works — 4-step workflow */}
+          {/* How it works — 4-step workflow (collapsed by default for returning users) */}
           <div className="glass-card rounded-2xl p-6">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-app-subtle mb-5">How it works</p>
-            <div className="grid sm:grid-cols-4 gap-4">
+            <button
+              onClick={() => setShowWorkflow((v) => !v)}
+              className="flex items-center justify-between w-full text-left"
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-app-subtle">How it works</p>
+              {!isFirstTime && (
+                <ChevronDown className={`w-4 h-4 text-app-subtle transition-transform ${showWorkflow ? "" : "-rotate-90"}`} />
+              )}
+            </button>
+            <div className={`grid sm:grid-cols-4 gap-4 mt-5 ${!showWorkflow && !isFirstTime ? "hidden" : ""}`}>
               {WORKFLOW_STEPS.map((step, i) => {
                 const Icon = step.icon;
                 const done = !isFirstTime && (
@@ -366,13 +392,13 @@ export default function HomePage() {
               </div>
               <ArrowRight className="w-4 h-4 text-app-subtle group-hover:text-accent group-hover:translate-x-0.5 transition-all duration-200" />
             </Link>
-            <Link href="/sample-datasets" className="group glass-card rounded-xl p-4 flex items-center gap-4 hover:border-accent2/40 card-hover animate-fade-in-up stagger-6">
+            <Link href="/upload" className="group glass-card rounded-xl p-4 flex items-center gap-4 hover:border-accent2/40 card-hover animate-fade-in-up stagger-6">
               <div className="w-10 h-10 rounded-xl bg-accent2/10 flex items-center justify-center group-hover:bg-accent2/20 group-hover:scale-105 transition-all duration-200">
                 <Database className="w-5 h-5 text-accent2" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-app-text">Try a Sample Dataset</p>
-                <p className="text-xs text-app-muted">Pre-loaded datasets to explore</p>
+                <p className="text-xs text-app-muted">Pre-loaded messy data to explore cleaning</p>
               </div>
               <ArrowRight className="w-4 h-4 text-app-subtle group-hover:text-accent2 group-hover:translate-x-0.5 transition-all duration-200" />
             </Link>

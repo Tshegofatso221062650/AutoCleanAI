@@ -57,6 +57,7 @@ export default function AnalysisPage() {
   const [err, setErr] = useState<string | null>(null);
   const [objectives, setObjectives] = useState<any[] | null>(null);
   const [isCleaned, setIsCleaned] = useState(false);
+  const [datasetName, setDatasetName] = useState<string>("");
 
   useEffect(() => {
     apiFetch("/users/me")
@@ -76,6 +77,7 @@ export default function AnalysisPage() {
         ]);
         if (cancelled) return;
         if (ds?.last_cleaned_at) setIsCleaned(true);
+        if (ds?.original_filename) setDatasetName(ds.original_filename);
 
         const cachedProfile =
           ds?.analysis_json && typeof ds.analysis_json === "object"
@@ -190,7 +192,9 @@ export default function AnalysisPage() {
               </span>
               <span className="text-xs text-app-subtle font-mono">{id}</span>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight"><span className="gradient-text">Dataset Analysis</span></h1>
+            <h1 className="text-2xl font-bold tracking-tight">
+              <span className="gradient-text">{datasetName || "Dataset Analysis"}</span>
+            </h1>
             <p className="text-sm text-app-muted mt-1">
               {isCleaned
                 ? "Showing post-cleaning metrics — your original file is preserved"

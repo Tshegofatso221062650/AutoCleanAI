@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { AuthGate } from "@/components/AuthGate";
@@ -119,6 +119,7 @@ export default function CleaningPage() {
   });
 
   const [originalFilename, setOriginalFilename] = useState<string>("dataset");
+  const resultsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     apiFetch(`/datasets/${id}`)
       .then((d) => {
@@ -185,6 +186,11 @@ export default function CleaningPage() {
         setPerformanceMeta(data.performance || null);
         setLastCleanedAt(cleanedAt);
         setActiveTab("diff");
+
+        // Scroll to results after state settles
+        setTimeout(() => {
+          resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 150);
 
         // ── Success notification ─────────────────────────────────────────
         const fixCount = data.report?.fixes?.length ?? 0;
@@ -306,7 +312,7 @@ export default function CleaningPage() {
             </span>
             <span className="text-xs text-app-subtle font-mono">{id}</span>
           </div>
-          <h1 className="text-2xl font-bold text-app-text">Clean Dataset</h1>
+          <h1 className="text-2xl font-bold text-app-text">{originalFilename ? `Clean: ${originalFilename}` : "Clean Dataset"}</h1>
           <p className="text-sm text-app-muted mt-1">
             Your original file is <strong className="text-app-text">never modified</strong>. Configure options, run cleaning, then compare the full before/after preview and export.
           </p>
@@ -577,24 +583,31 @@ export default function CleaningPage() {
           )}
 
           <div className="flex flex-wrap gap-3 mt-5 pt-4 border-t border-edge">
-            <button
-              type="button"
-              disabled={busyMode !== null}
-              onClick={() => runClean(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent text-void font-bold text-sm hover:bg-accent/85 disabled:opacity-50 transition-colors shadow-sm"
-            >
-              {busyMode === "auto" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              Auto Clean
-            </button>
-            <button
-              type="button"
-              disabled={busyMode !== null}
-              onClick={() => runClean(false)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-void border border-edge text-app-text font-medium text-sm hover:border-accent/50 disabled:opacity-50 transition-colors"
-            >
-              {busyMode === "custom" && <Loader2 className="w-4 h-4 animate-spin" />}
-              Run Custom Clean
-            </button>
+            <div className="flex flex-col items-start gap-1">
+              <button
+                type="button"
+                disabled={busyMode !== null}
+                onClick={() => runClean(true)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent text-void font-bold text-sm hover:bg-accent/85 disabled:opacity-50 transition-colors shadow-sm"
+              >
+                {busyMode === "auto" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                Auto Clean
+                <span className="text-[9px] bg-void/20 px-1.5 py-0.5 rounded-full font-semibold uppercase tracking-wider">Recommended</span>
+              </button>
+              <span className="text-[10px] text-app-subtle pl-1">One click — fixes everything it safely can</span>
+            </div>
+            <div className="flex flex-col items-start gap-1">
+              <button
+                type="button"
+                disabled={busyMode !== null}
+                onClick={() => runClean(false)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-void border border-edge text-app-text font-medium text-sm hover:border-accent/50 disabled:opacity-50 transition-colors"
+              >
+                {busyMode === "custom" && <Loader2 className="w-4 h-4 animate-spin" />}
+                Run Custom Clean
+              </button>
+              <span className="text-[10px] text-app-subtle pl-1">Uses your options above</span>
+            </div>
             {report && (
               <Link
                 href={`/review/${id}`}
@@ -651,7 +664,7 @@ export default function CleaningPage() {
 
         {/* ══════════ RESULTS ══════════ */}
         {report && busyMode === null && (
-          <div className="space-y-5">
+          <div ref={resultsRef} className="space-y-5">
             {(performanceMeta?.fast_mode || false) && (
               <div className="rounded-xl border border-accent2/30 bg-accent2/5 px-4 py-3 text-xs text-app-muted">
                 Performance mode active: using lighter profiling and {performanceMeta?.preview_rows ?? 20} preview rows for faster execution.
