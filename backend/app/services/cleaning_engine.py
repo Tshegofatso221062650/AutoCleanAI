@@ -394,6 +394,14 @@ def load_dataframe(path: Path, fmt: str) -> pd.DataFrame:
         return pd.read_excel(path, engine="openpyxl")
     if fmt == "xls":
         return pd.read_excel(path, engine="xlrd")
+    if fmt == "tsv":
+        df = pd.read_csv(path, sep="\t")
+        str_cols = df.select_dtypes(include=["string"]).columns.tolist()
+        if str_cols:
+            df[str_cols] = df[str_cols].astype(object)
+        return df
+    if fmt == "parquet":
+        return pd.read_parquet(path)
     if fmt == "json":
         text = path.read_text(encoding="utf-8", errors="replace")
         try:
