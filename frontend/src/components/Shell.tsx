@@ -213,6 +213,13 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
   return (
     <ShellMountedCtx.Provider value={true}>
     <div className="h-screen flex overflow-hidden bg-[var(--app-bg)]">
+      {/* Skip to content — keyboard nav a11y */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[999] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-accent focus:text-void focus:text-sm focus:font-semibold"
+      >
+        Skip to content
+      </a>
       {/* Mobile overlay backdrop */}
       {mobileOpen && (
         <div
@@ -349,7 +356,7 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
 
         {/* Logout confirmation modal */}
         {showLogoutConfirm && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}>
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }} role="dialog" aria-modal="true" aria-label="Confirm logout">
             <div className="w-full max-w-sm rounded-2xl p-6 space-y-4 shadow-2xl" style={{ background: "var(--app-panel)", border: "1px solid var(--app-edge)" }}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-danger/10 flex items-center justify-center flex-shrink-0">
@@ -392,6 +399,7 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
             onClick={() => setMobileOpen(true)}
             className="md:hidden flex-none p-2 -ml-2 rounded-lg text-app-muted hover:text-app-text hover:bg-[var(--app-hover-bg)] transition-colors"
             title="Open menu"
+            aria-label="Open navigation menu"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -486,6 +494,7 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
               size="sm"
               className="p-2 rounded-lg text-app-subtle hover:text-app-muted"
               title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              aria-label={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
               {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
@@ -493,7 +502,7 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
         </header>
 
         {/* Page content — only this scrolls */}
-        <main className="flex-1 min-h-0 overflow-y-auto p-6 custom-scrollbar">
+        <main id="main-content" className="flex-1 min-h-0 overflow-y-auto p-6 custom-scrollbar">
           <div className="page-enter">{children}</div>
         </main>
       </div>
@@ -519,6 +528,9 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
         <div
           className="fixed inset-0 z-50 flex items-start justify-center pt-[14vh] bg-black/60 backdrop-blur-sm"
           onClick={(e) => { if (e.target === e.currentTarget) closeSearch(); }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Search datasets"
         >
           <div className="w-full max-w-lg mx-4 rounded-xl border border-edge/60 bg-panel shadow-2xl overflow-hidden">
             {/* Search input */}
@@ -593,7 +605,7 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
       )}
       {/* Global confirm dialog */}
       {confirmReq && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}>
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }} role="dialog" aria-modal="true" aria-label="Confirm action">
           <div className="w-full max-w-sm rounded-2xl p-6 space-y-4 shadow-2xl" style={{ background: "var(--app-panel)", border: "1px solid var(--app-edge)" }}>
             <p className="text-sm text-app-text leading-relaxed">{confirmReq.message}</p>
             <div className="flex gap-2 pt-1">

@@ -25,7 +25,7 @@
   /* Text */
   --app-text:       #edf2f7;
   --app-text-muted: #8fa3c0;
-  --app-text-subtle: #506080;
+  --app-text-subtle: #7a8faa;  /* bumped from #506080 for WCAG AA (4.5:1 contrast on dark bg) */
 
   /* Inputs */
   --app-input-bg:     #0b0f16;
@@ -71,7 +71,7 @@ html.light {
   --app-edge2: #e2e8f0;
   --app-text: #0f172a;
   --app-text-muted: #475569;
-  --app-text-subtle: #64748b;
+  --app-text-subtle: #556478;  /* bumped for WCAG AA contrast on light bg */
   --app-input-bg: #f8fafc;
   --app-input-border: #cbd5e1;
   --app-hover-bg: rgba(0, 0, 0, 0.04);
@@ -399,5 +399,17 @@ html.light .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     flex: 1;
     height: 1px;
     background: var(--app-edge);
+  }
+}
+
+/* ── Reduced motion ────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

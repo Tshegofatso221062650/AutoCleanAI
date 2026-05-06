@@ -371,9 +371,9 @@ export default function CleaningPage() {
                     title={iss.tip}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium cursor-default ${sevColor[iss.sev]}`}
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full ${
-                      iss.sev === "high" ? "bg-danger" : iss.sev === "med" ? "bg-warn" : "bg-edge/60"
-                    } flex-shrink-0`} />
+                    <span className="flex-shrink-0 text-[10px] leading-none" aria-label={iss.sev === "high" ? "High severity" : iss.sev === "med" ? "Medium severity" : "Low severity"}>
+                      {iss.sev === "high" ? "▲" : iss.sev === "med" ? "●" : "—"}
+                    </span>
                     {iss.label}: <strong>{iss.value}</strong>
                   </span>
                 ))}
