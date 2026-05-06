@@ -50,13 +50,24 @@ export default function HistoryPage() {
   const itemsPerPage = 10;
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [sortBy, setSortBy] = useState<"date" | "name" | "quality" | "rows">("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     void apiFetch("/history").then((d) => setItems(d.items || []));
   }, []);
 
-  const paginatedItems = items.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-  const totalPages = Math.ceil(items.length / itemsPerPage);
+  const sortedItems = [...items].sort((a, b) => {
+    const dir = sortDir === "asc" ? 1 : -1;
+    switch (sortBy) {
+      case "name": return dir * a.original_filename.localeCompare(b.original_filename);
+      case "quality": return dir * ((a.quality_score ?? -1) - (b.quality_score ?? -1));
+      case "rows": return dir * ((a.row_count ?? 0) - (b.row_count ?? 0));
+      default: return dir * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    }
+  });
+  const paginatedItems = sortedItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const totalPages = Math.ceil(sortedItems.length / itemsPerPage);
 
   const loadDetails = async (datasetId: string) => {
     if (versions[datasetId] && lineage[datasetId]) {
@@ -269,6 +280,18 @@ export default function HistoryPage() {
             </div>
           ) : (
             <div className="glass-card rounded-2xl overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-2.5 border-b border-edge/30">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-app-subtle">Sort by</span>
+                {(["date", "name", "quality", "rows"] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => { if (sortBy === s) setSortDir(d => d === "asc" ? "desc" : "asc"); else { setSortBy(s); setSortDir(s === "quality" ? "desc" : "asc"); } setCurrentPage(1); }}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${sortBy === s ? "bg-accent/15 text-accent" : "text-app-muted hover:text-app-text hover:bg-edge/40"}`}
+                  >
+                    {s.charAt(0).toUpperCase() + s.slice(1)} {sortBy === s ? (sortDir === "asc" ? "↑" : "↓") : ""}
+                  </button>
+                ))}
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-panel/50 border-b border-edge/50">
@@ -345,7 +368,14 @@ export default function HistoryPage() {
                                 )}
                               </Button>
                               <div>
-                                <div className="text-app-text font-medium">{it.original_filename}</div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-app-text font-medium">{it.original_filename}</span>
+                                  {it.last_cleaned_at && (
+                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-accent/10 text-accent text-[9px] font-bold uppercase tracking-wider border border-accent/20">
+                                      Cleaned
+                                    </span>
+                                  )}
+                                </div>
                                 {it.created_by && (
                                   <div className="flex items-center gap-1 mt-0.5">
                                     <User className="w-2.5 h-2.5 text-app-subtle" />

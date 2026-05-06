@@ -118,11 +118,13 @@ export default function CleaningPage() {
     performance_mode: false,
   });
 
+  const [originalFilename, setOriginalFilename] = useState<string>("dataset");
   useEffect(() => {
     apiFetch(`/datasets/${id}`)
       .then((d) => {
         const profile = d.analysis_json ? (typeof d.analysis_json === "string" ? JSON.parse(d.analysis_json) : d.analysis_json) : null;
         if (profile) setPreCleanMeta(profile);
+        if (d.original_filename) setOriginalFilename(d.original_filename.replace(/\.[^.]+$/, ""));
       })
       .catch(() => {});
   }, [id]);
@@ -268,7 +270,7 @@ export default function CleaningPage() {
         const url = URL.createObjectURL(b);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `cleaned.${fmt}`;
+        a.download = `${originalFilename}_cleaned.${fmt}`;
         a.click();
         URL.revokeObjectURL(url);
       });

@@ -267,7 +267,7 @@ export default function UploadPage() {
               if (busy) return;
               const input = document.createElement("input");
               input.type = "file";
-              input.accept = ".csv,.xlsx,.xls,.json";
+              input.accept = ".csv,.tsv,.xlsx,.xls,.json,.parquet";
               input.onchange = () => {
                 const f = input.files?.[0];
                 if (f) void uploadFile(f);

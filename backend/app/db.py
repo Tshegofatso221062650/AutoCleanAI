@@ -818,9 +818,23 @@ def get_dataset(dataset_id: str) -> dict | None:
 
 
 def delete_dataset(dataset_id: str) -> bool:
+    import shutil
+    from app.config import settings as _settings
+
     with get_conn() as conn:
         cur = conn.execute("DELETE FROM datasets WHERE id = ?", (dataset_id,))
-        return cur.rowcount > 0
+        if cur.rowcount == 0:
+            return False
+
+    # Clean up files on disk
+    upload_dir = _settings.data_dir / dataset_id
+    if upload_dir.exists():
+        shutil.rmtree(upload_dir, ignore_errors=True)
+    export_dir = _settings.exports_dir / dataset_id
+    if export_dir.exists():
+        shutil.rmtree(export_dir, ignore_errors=True)
+
+    return True
 
 
 def list_history_lite(limit: int = 1000, user: str | None = None) -> list[dict]:

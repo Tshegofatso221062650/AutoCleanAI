@@ -56,6 +56,7 @@ export default function AnalysisPage() {
   const [preview, setPreview] = useState<Record<string, any>[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [objectives, setObjectives] = useState<any[] | null>(null);
+  const [isCleaned, setIsCleaned] = useState(false);
 
   useEffect(() => {
     apiFetch("/users/me")
@@ -74,6 +75,7 @@ export default function AnalysisPage() {
           apiFetch(`/datasets/${id}/objectives`),
         ]);
         if (cancelled) return;
+        if (ds?.last_cleaned_at) setIsCleaned(true);
 
         const cachedProfile =
           ds?.analysis_json && typeof ds.analysis_json === "object"
@@ -179,13 +181,21 @@ export default function AnalysisPage() {
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6 animate-fade-in-down">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-warn/10 text-warn border border-warn/30">
-                Raw · Uncleaned
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest ${
+                isCleaned
+                  ? "bg-accent/10 text-accent border border-accent/30"
+                  : "bg-warn/10 text-warn border border-warn/30"
+              }`}>
+                {isCleaned ? "Cleaned" : "Raw · Uncleaned"}
               </span>
               <span className="text-xs text-app-subtle font-mono">{id}</span>
             </div>
             <h1 className="text-2xl font-bold tracking-tight"><span className="gradient-text">Dataset Analysis</span></h1>
-            <p className="text-sm text-app-muted mt-1">This is your original dataset exactly as uploaded — no changes applied yet</p>
+            <p className="text-sm text-app-muted mt-1">
+              {isCleaned
+                ? "Showing post-cleaning metrics — your original file is preserved"
+                : "This is your original dataset exactly as uploaded — no changes applied yet"}
+            </p>
           </div>
           <Link
             href={`/cleaning/${id}`}

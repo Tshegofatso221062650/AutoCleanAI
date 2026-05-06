@@ -34,7 +34,6 @@ export default function ChatPage() {
     () => getCached("/history") === null
   );
   const [aiProvider, setAiProvider] = useState<string>("ollama");
-  const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef  = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -49,8 +48,12 @@ export default function ChatPage() {
     apiFetch("/settings").then((d) => setAiProvider(d.ai_provider || "ollama")).catch(() => {});
   }, []);
 
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, [messages, loading]);
 
   const selected = datasets.find((d) => d.id === selectedId);
@@ -195,7 +198,7 @@ export default function ChatPage() {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 custom-scrollbar">
+            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-4 custom-scrollbar">
               {!selectedId && (
                 <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
                   <MessageSquare className="w-12 h-12 text-app-subtle" />
@@ -265,7 +268,7 @@ export default function ChatPage() {
                   </div>
                 </div>
               )}
-              <div ref={bottomRef} />
+              <div />
             </div>
 
             {/* Input */}
