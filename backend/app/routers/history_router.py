@@ -72,6 +72,28 @@ def delete_dataset_endpoint_plural(dataset_id: str, user: str = Depends(require_
     return delete_dataset_endpoint(dataset_id, user)
 
 
+@router.get("/datasets/{dataset_id}/preview")
+def dataset_preview(dataset_id: str, rows: int = 5, user: str = Depends(require_auth)):
+    """Return first N rows of a dataset as JSON records for quick preview."""
+    require_item_access(user, "dataset", dataset_id)
+    ds = get_dataset(dataset_id)
+    if not ds:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+
+    from app.services.cleaning_engine import load_dataframe
+    from app.services.storage import resolve_original_path, infer_format_from_name
+    import pandas as pd
+
+    path = resolve_original_path(ds)
+    fmt = infer_format_from_name(ds.get("original_filename", "") or ds.get("stored_path", ""))
+    try:
+        df = load_dataframe(path, fmt)
+        preview = df.head(min(rows, 20)).fillna("").to_dict(orient="records")
+        return {"rows": preview}
+    except Exception:
+        return {"rows": []}
+
+
 @router.patch("/datasets/{dataset_id}/rename")
 def rename_dataset(dataset_id: str, body: dict, user: str = Depends(require_auth)):
     """Rename a dataset's display filename."""

@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { clearToken, apiFetch } from "@/lib/api";
 import { _registerConfirmListener } from "@/lib/confirm";
 import { invalidateAuthCache } from "@/components/AuthGate";
-import { Home, Upload, History, Settings, LogOut, Sparkles, TrendingUp, Workflow, BarChart3, ChevronLeft, ChevronRight, Shield, GitCompare, Moon, Sun, Keyboard, FileText, MessageSquare, Wand2, Search, X, Loader2, FileSpreadsheet, Bell, CheckCircle2, XCircle, RefreshCw, Zap, Layers, Calendar, Users, Target, Activity, Code, AlertTriangle, EyeOff, GitBranch, Network, Merge, Tag, ListFilter, DatabaseZap } from "lucide-react";
+import { Home, Upload, History, Settings, LogOut, Sparkles, TrendingUp, Workflow, BarChart3, ChevronLeft, ChevronRight, Shield, GitCompare, Moon, Sun, Keyboard, FileText, MessageSquare, Wand2, Search, X, Loader2, FileSpreadsheet, Bell, CheckCircle2, XCircle, RefreshCw, Zap, Layers, Calendar, Users, Target, Activity, Code, AlertTriangle, EyeOff, GitBranch, Network, Merge, Tag, ListFilter, DatabaseZap, Menu } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { useJobSocket, type JobEvent } from "@/lib/useJobSocket";
 import { useToasts, Toast } from "@/components/Toast";
@@ -84,6 +84,7 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
   useNavigationShortcuts();
   const { theme, toggleTheme } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [userRole, setUserRole] = useState<string>("user");
   const [userName, setUserName] = useState<string>("");
@@ -91,7 +92,8 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
   const [confirmReq, setConfirmReq] = useState<{ message: string; resolve: (ok: boolean) => void } | null>(null);
 
   useEffect(() => {
-    return _registerConfirmListener((req) => setConfirmReq(req));
+    const unsub = _registerConfirmListener((req) => setConfirmReq(req));
+    return () => { unsub(); };
   }, []);
 
   useEffect(() => {
@@ -211,10 +213,20 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
   return (
     <ShellMountedCtx.Provider value={true}>
     <div className="h-screen flex overflow-hidden bg-[var(--app-bg)]">
+      {/* Mobile overlay backdrop */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
       {/* Sidebar — fixed to viewport height, never scrolls with content */}
       <aside
         className={`h-full flex-none flex flex-col transition-all duration-300 ease-in-out ${
           sidebarCollapsed ? "w-16" : "w-60"
+        } ${
+          mobileOpen ? "fixed inset-y-0 left-0 z-50" : "hidden md:flex"
         }`}
         style={{
           background: "linear-gradient(180deg, var(--app-panel) 0%, color-mix(in srgb, var(--app-panel) 95%, var(--app-bg)) 100%)",
@@ -277,6 +289,7 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
                         key={l.href}
                         href={l.href}
                         title={sidebarCollapsed ? l.label : undefined}
+                        onClick={() => setMobileOpen(false)}
                         className={`flex items-center gap-2.5 rounded-lg text-[13px] font-medium transition-all duration-150 ${
                           sidebarCollapsed ? "justify-center w-10 h-10 mx-auto" : "px-3 py-[7px]"
                         } ${
@@ -375,6 +388,13 @@ const ShellImpl = memo(function ShellImpl({ children }: { children: ReactNode })
             boxShadow: "0 1px 0 rgba(0,0,0,0.15)",
           }}
         >
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="md:hidden flex-none p-2 -ml-2 rounded-lg text-app-muted hover:text-app-text hover:bg-[var(--app-hover-bg)] transition-colors"
+            title="Open menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
           <h1 className="flex-1 text-[15px] font-semibold text-app-text truncate tracking-tight">
             {links.find(l => l.href === pathname)?.label || "Dashboard"}
           </h1>

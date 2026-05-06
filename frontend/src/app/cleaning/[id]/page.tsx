@@ -15,6 +15,7 @@ import {
   UnifiedDiffTable, FloatingExportBar,
 } from "@/components/CleaningHelpers";
 import { showToast } from "@/components/Toast";
+import { showConfirm } from "@/lib/confirm";
 
 interface CleanReport {
   fixes: FixEntry[];
@@ -132,6 +133,14 @@ export default function CleaningPage() {
 
   const runClean = useCallback(
     async (safeAll: boolean) => {
+      // Confirm before cleaning large datasets
+      const totalRows = preCleanMeta?.total_rows ?? 0;
+      if (totalRows > 100_000) {
+        const ok = await showConfirm(
+          `This dataset has ${totalRows.toLocaleString()} rows. Cleaning may take several minutes. Continue?`
+        );
+        if (!ok) return;
+      }
       setBusyMode(safeAll ? "auto" : "custom");
       setReport(null);
       setCleanError(null);
@@ -231,7 +240,7 @@ export default function CleaningPage() {
         setBusyMode(null);
       }
     },
-    [id, opts, rulesJson, schemaJson, uniquenessCols, survivorship],
+    [id, opts, rulesJson, schemaJson, uniquenessCols, survivorship, preCleanMeta],
   );
 
   const colsBefore = useMemo(
@@ -915,6 +924,16 @@ export default function CleaningPage() {
                         </span>
                       </button>
                     ))}
+                  </div>
+                  <div className="mt-6 pt-5 border-t border-edge/40">
+                    <p className="text-xs text-app-muted mb-3">Need to push this to a database instead?</p>
+                    <Link
+                      href={`/export?dataset=${id}`}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-edge text-sm font-medium text-app-text hover:border-accent/50 hover:bg-accent/5 transition-all"
+                    >
+                      <Layers className="w-4 h-4 text-accent" />
+                      Export to Database →
+                    </Link>
                   </div>
                 </div>
               )}

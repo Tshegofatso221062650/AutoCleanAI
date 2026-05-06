@@ -195,7 +195,9 @@ export default function LoginPage() {
 
                 <p className="text-center text-[11px] text-app-subtle">
                   Forgot your password?{" "}
-                  <span className="text-accent/80 cursor-default">Ask an administrator to reset it</span>
+                  <button type="button" onClick={() => setOwnerMode(true)} className="text-accent/80 hover:text-accent transition-colors">
+                    Sign in as owner to reset it
+                  </button>
                 </p>
               </form>
             )}

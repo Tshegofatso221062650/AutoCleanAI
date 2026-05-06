@@ -46,6 +46,7 @@ export default function HistoryPage() {
   const [versions, setVersions] = useState<Record<string, Version[]>>({});
   const [lineage, setLineage] = useState<Record<string, LineageEntry[]>>({});
   const [loadingDetails, setLoadingDetails] = useState<Record<string, boolean>>({});
+  const [previews, setPreviews] = useState<Record<string, Record<string, unknown>[]>>({});
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -99,12 +100,16 @@ export default function HistoryPage() {
     
     setLoadingDetails((prev) => ({ ...prev, [datasetId]: true }));
     try {
-      const [versionsData, lineageData] = await Promise.all([
+      const [versionsData, lineageData, previewData] = await Promise.all([
         apiFetch(`/datasets/${datasetId}/versions`),
         apiFetch(`/datasets/${datasetId}/lineage`),
+        apiFetch(`/datasets/${datasetId}/preview?rows=5`).catch(() => ({ rows: [] })),
       ]);
       setVersions((prev) => ({ ...prev, [datasetId]: versionsData.versions || [] }));
       setLineage((prev) => ({ ...prev, [datasetId]: lineageData.lineage || [] }));
+      if (previewData?.rows?.length) {
+        setPreviews((prev) => ({ ...prev, [datasetId]: previewData.rows }));
+      }
     } catch (e) {
       console.error("Failed to load details:", e);
     } finally {
@@ -560,6 +565,36 @@ export default function HistoryPage() {
                                       Redo
                                     </Button>
                                   </div>
+                                  {/* Data Preview */}
+                                  {previews[it.id] && previews[it.id].length > 0 && (
+                                    <div>
+                                      <h3 className="text-sm font-semibold text-accent mb-2 flex items-center gap-2">
+                                        <FileSpreadsheet className="w-4 h-4" />
+                                        Data Preview <span className="text-app-subtle font-normal text-xs">(first {previews[it.id].length} rows)</span>
+                                      </h3>
+                                      <div className="overflow-x-auto rounded-lg border border-edge/50">
+                                        <table className="text-xs w-full">
+                                          <thead className="bg-panel/60">
+                                            <tr>
+                                              {Object.keys(previews[it.id][0]).map((col) => (
+                                                <th key={col} className="px-3 py-2 text-left text-[10px] font-semibold text-app-subtle uppercase tracking-wider whitespace-nowrap border-b border-edge/30">{col}</th>
+                                              ))}
+                                            </tr>
+                                          </thead>
+                                          <tbody className="divide-y divide-edge/20">
+                                            {previews[it.id].map((row, ri) => (
+                                              <tr key={ri} className="hover:bg-accent/5">
+                                                {Object.values(row).map((val, ci) => (
+                                                  <td key={ci} className="px-3 py-1.5 text-app-muted whitespace-nowrap max-w-[200px] truncate">{val == null ? <span className="text-app-subtle italic">null</span> : String(val)}</td>
+                                                ))}
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                    </div>
+                                  )}
+
                                   {/* Versions */}
                                   <div>
                                     <h3 className="text-sm font-semibold text-accent mb-2 flex items-center gap-2">
