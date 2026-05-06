@@ -1,0 +1,7 @@
+name,email,age,city,salary,signup_date
+alice,alice@mail.com,25,johanesburg,50000,2023-01-15
+bob,bad-email,17,"cape town","48000",01/02/2023
+Charlie,charlie@ok.org,-1,pretoria,,2023-03-20
+alice,alice@mail.com,25,johanesburg,50000,2023-01-15
+Dana,dana@x.com,34,New YORK,62000,2023-13-40
+Eve,eve@@x.com,41,johannesburg,70000,15-Mar-2023

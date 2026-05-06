@@ -1,0 +1,5 @@
+[
+  {"sku": "A1", "qty": "10", "price": "9.99", "region": "west"},
+  {"sku": "A2", "qty": null, "price": 12.5, "region": "WEST"},
+  {"sku": "A1", "qty": "10", "price": "9.99", "region": "west"}
+]

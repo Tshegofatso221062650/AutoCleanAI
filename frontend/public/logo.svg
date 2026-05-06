@@ -1,0 +1,22 @@
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>AutoClean AI</title>
+  <defs>
+    <linearGradient id="barGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7DD3FC"/>
+      <stop offset="100%" stop-color="#818CF8"/>
+    </linearGradient>
+    <filter id="sparkGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="80" height="80" rx="18" fill="#0a0d14"/>
+  <rect width="80" height="80" rx="18" fill="none" stroke="#22D3EE" stroke-width="0.75" opacity="0.5"/>
+  <rect x="11" y="14" width="58" height="13" rx="3" fill="url(#barGrad)" opacity="1" transform="rotate(-4,40,20)"/>
+  <rect x="11" y="34" width="58" height="13" rx="3" fill="url(#barGrad)" opacity="0.52" transform="rotate(-4,40,40)"/>
+  <rect x="11" y="54" width="58" height="13" rx="3" fill="url(#barGrad)" opacity="0.23" transform="rotate(-4,40,60)"/>
+  <circle cx="64" cy="13" r="7" fill="#22D3EE" opacity="0.16"/>
+  <g transform="translate(64,13)" filter="url(#sparkGlow)">
+    <polygon points="0,-7 1.7,-1.7 7,0 1.7,1.7 0,7 -1.7,1.7 -7,0 -1.7,-1.7" fill="#22D3EE"/>
+  </g>
+</svg>

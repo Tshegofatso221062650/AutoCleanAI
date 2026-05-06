@@ -1,0 +1,3 @@
+# Optional: pip install -r requirements-optional-ge.txt
+# Great Expectations has heavy deps; install only if you need built-in expectation suites.
+great-expectations==0.18.19

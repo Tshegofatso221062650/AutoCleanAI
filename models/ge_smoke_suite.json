@@ -1,0 +1,4 @@
+{
+  "description": "Optional Great Expectations reference — validated at runtime via Python API.",
+  "expectations": ["expect_column_values_to_not_be_null"]
+}
